@@ -53,6 +53,7 @@ private:
     int nav_button_idx;
     // ***Add button index for new planner here***
     // int new_button_idx;
+    int wall_follow_idx; 
 
     // Key indices
     std::string joy_key_char;
@@ -61,8 +62,9 @@ private:
     std::string random_walk_key_char;
     std::string nav_key_char;
     // ***Add key char for new planner here***
-    // int new_key_char;
-
+    //std::string new_key_char;
+    std::string wall_follow_key_char; 
+    
     // Is ebrake on? (not engaged, but on)
     bool safety_on;
 
@@ -119,6 +121,7 @@ public:
         n.getParam("nav_mux_idx", nav_mux_idx);
         // ***Add mux index for new planner here***
         // n.getParam("new_mux_idx", new_mux_idx);
+        n.getParam("wall_follow_idx", wall_follow_idx); 
 
         // Get button indices
         n.getParam("joy_button_idx", joy_button_idx);
@@ -137,6 +140,7 @@ public:
         n.getParam("nav_key_char", nav_key_char);
         // ***Add key char for new planner here***
         // n.getParam("new_key_char", new_key_char);
+        n.getParam("wall_follow_key_char", wall_follow_key_char); 
 
         // Initialize the mux controller 
         n.getParam("mux_size", mux_size);
@@ -150,7 +154,7 @@ public:
 
         // Initialize state
         state = {.x=0.0, .y=0.0, .theta=0.0, .velocity=0.0, .steer_angle=0.0, .angular_velocity=0.0, .slip_angle=0.0, .st_dyn=false};
-
+        
         // Get params for precomputation and collision detection
         int scan_beams;
         double scan_fov, scan_ang_incr, wheelbase, width, scan_distance_to_base_link;
@@ -344,6 +348,9 @@ public:
         } else if (msg.data == nav_key_char) {
             // nav
             toggle_mux(nav_mux_idx, "Navigation");
+        } else if (msg.data == wall_follow_key_char) 
+        {
+            toggle_mux(wall_follow_idx, "Wall Follow"); 
         }
         // ***Add new else if statement here for new planning method***
         // if (msg.data == new_key_char) {
