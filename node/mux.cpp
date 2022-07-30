@@ -129,20 +129,26 @@ public:
         // n.getParam("new_drive_topic", new_drive_topic);
         // n.getParam("new_mux_idx", new_mux_idx);
         // add_channel(new_drive_topic, drive_topic, new_mux_idx);
-        int wall_follow_mux_idx; 
-        std::string wall_follow_topic; 
-        n.getParam("wall_follow_topic", wall_follow_topic); 
-        n.getParam("wall_follow_idx", wall_follow_mux_idx); 
-        add_channel(wall_follow_topic, drive_topic, wall_follow_mux_idx); 
+        int wall_follow_mux_idx;
+        std::string wall_follow_topic;
+        n.getParam("wall_follow_topic", wall_follow_topic);
+        n.getParam("wall_follow_idx", wall_follow_mux_idx);
+        add_channel(wall_follow_topic, drive_topic, wall_follow_mux_idx);
+
+        int gap_follow_mux_idx;
+        std::string gap_follow_topic;
+        n.getParam("gap_follow_topic", gap_follow_topic);
+        n.getParam("gap_follow_idx", gap_follow_mux_idx);
+        add_channel(wall_follow_topic, drive_topic, wall_follow_mux_idx);
     }
 
     void add_channel(std::string channel_name, std::string drive_topic, int mux_idx_) {
         Channel* new_channel = new Channel(channel_name, drive_topic, mux_idx_, this);
-        channels.push_back(new_channel);    
+        channels.push_back(new_channel);
     }
 
     void publish_to_drive(double desired_velocity, double desired_steer) {
-        // This will take in a desired velocity and steering angle and make and publish an 
+        // This will take in a desired velocity and steering angle and make and publish an
         // AckermannDriveStamped message to the /drive topic
 
         // Make and publish message
@@ -202,12 +208,12 @@ public:
     }
 
     void key_callback(const std_msgs::String & msg) {
-        // make drive message from keyboard if turned on 
+        // make drive message from keyboard if turned on
         if (mux_controller[key_mux_idx]) {
             // Determine desired velocity and steering angle
             double desired_velocity = 0.0;
             double desired_steer = 0.0;
-            
+
             bool publish = true;
 
             if (msg.data == "w") {
@@ -249,7 +255,7 @@ Channel::Channel() {
     Channel("", "", -1, nullptr);
 }
 
-Channel::Channel(std::string channel_name, std::string drive_topic, int mux_idx_, Mux* mux) 
+Channel::Channel(std::string channel_name, std::string drive_topic, int mux_idx_, Mux* mux)
 : mux_idx(mux_idx_), mp_mux(mux) {
     drive_pub = mux->n.advertise<ackermann_msgs::AckermannDriveStamped>(drive_topic, 10);
     channel_sub = mux->n.subscribe(channel_name, 1, &Channel::drive_callback, this);

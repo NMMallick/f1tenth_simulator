@@ -53,7 +53,8 @@ private:
     int nav_button_idx;
     // ***Add button index for new planner here***
     // int new_button_idx;
-    int wall_follow_idx; 
+    int wall_follow_idx;
+    int gap_follow_idx;
 
     // Key indices
     std::string joy_key_char;
@@ -63,8 +64,9 @@ private:
     std::string nav_key_char;
     // ***Add key char for new planner here***
     //std::string new_key_char;
-    std::string wall_follow_key_char; 
-    
+    std::string wall_follow_key_char;
+    std::string gap_follow_key_char;
+
     // Is ebrake on? (not engaged, but on)
     bool safety_on;
 
@@ -121,7 +123,7 @@ public:
         n.getParam("nav_mux_idx", nav_mux_idx);
         // ***Add mux index for new planner here***
         // n.getParam("new_mux_idx", new_mux_idx);
-        n.getParam("wall_follow_idx", wall_follow_idx); 
+        n.getParam("wall_follow_idx", wall_follow_idx);
 
         // Get button indices
         n.getParam("joy_button_idx", joy_button_idx);
@@ -140,9 +142,10 @@ public:
         n.getParam("nav_key_char", nav_key_char);
         // ***Add key char for new planner here***
         // n.getParam("new_key_char", new_key_char);
-        n.getParam("wall_follow_key_char", wall_follow_key_char); 
+        n.getParam("wall_follow_key_char", wall_follow_key_char);
+        n.getParam("gap_follow_key_char", gap_follow_key_char);
 
-        // Initialize the mux controller 
+        // Initialize the mux controller
         n.getParam("mux_size", mux_size);
         mux_controller.reserve(mux_size);
         for (int i = 0; i < mux_size; i++) {
@@ -154,7 +157,7 @@ public:
 
         // Initialize state
         state = {.x=0.0, .y=0.0, .theta=0.0, .velocity=0.0, .steer_angle=0.0, .angular_velocity=0.0, .slip_angle=0.0, .st_dyn=false};
-        
+
         // Get params for precomputation and collision detection
         int scan_beams;
         double scan_fov, scan_ang_incr, wheelbase, width, scan_distance_to_base_link;
@@ -168,7 +171,7 @@ public:
 
         // Precompute cosine and distance to car at each angle of the laser scan
         cosines = Precompute::get_cosines(scan_beams, -scan_fov/2.0, scan_ang_incr);
-        car_distances = Precompute::get_car_distances(scan_beams, wheelbase, width, 
+        car_distances = Precompute::get_car_distances(scan_beams, wheelbase, width,
                 scan_distance_to_base_link, -scan_fov/2.0, scan_ang_incr);
 
         // Create collision file to be written to
@@ -218,7 +221,7 @@ public:
                 double ttc = (msg.ranges[i] - car_distances[i]) / proj_velocity;
 
                 // if it's small, there's a collision
-                if ((ttc < ttc_threshold) && (ttc >= 0.0)) { 
+                if ((ttc < ttc_threshold) && (ttc >= 0.0)) {
                     // Send a blank mux and write to file
                     collision_helper();
 
@@ -252,7 +255,7 @@ public:
     }
 
     void toggle_mux(int mux_idx, std::string driver_name) {
-        // This takes in an index and the name of the planner/driver and 
+        // This takes in an index and the name of the planner/driver and
         // toggles the mux appropiately
         if (mux_controller[mux_idx]) {
             ROS_INFO_STREAM(driver_name << " turned off");
@@ -290,16 +293,16 @@ public:
 
     void joy_callback(const sensor_msgs::Joy & msg) {
         // Changing mux_controller:
-        if (msg.buttons[joy_button_idx]) { 
+        if (msg.buttons[joy_button_idx]) {
             // joystick
             toggle_mux(joy_mux_idx, "Joystick");
         }
-        if (msg.buttons[key_button_idx]) { 
+        if (msg.buttons[key_button_idx]) {
             // keyboard
             toggle_mux(key_mux_idx, "Keyboard");
         }
-        else if (msg.buttons[brake_button_idx]) { 
-            // emergency brake 
+        else if (msg.buttons[brake_button_idx]) {
+            // emergency brake
             if (safety_on) {
                 ROS_INFO("Emergency brake turned off");
                 safety_on = false;
@@ -309,7 +312,7 @@ public:
                 safety_on = true;
             }
         }
-        else if (msg.buttons[random_walk_button_idx]) { 
+        else if (msg.buttons[random_walk_button_idx]) {
             // random walker
             toggle_mux(random_walker_mux_idx, "Random Walker");
         } else if (msg.buttons[nav_button_idx]) {
@@ -333,7 +336,7 @@ public:
             // keyboard
             toggle_mux(key_mux_idx, "Keyboard");
         } else if (msg.data == brake_key_char) {
-            // emergency brake 
+            // emergency brake
             if (safety_on) {
                 ROS_INFO("Emergency brake turned off");
                 safety_on = false;
@@ -348,9 +351,12 @@ public:
         } else if (msg.data == nav_key_char) {
             // nav
             toggle_mux(nav_mux_idx, "Navigation");
-        } else if (msg.data == wall_follow_key_char) 
+        } else if (msg.data == wall_follow_key_char)
         {
-            toggle_mux(wall_follow_idx, "Wall Follow"); 
+            toggle_mux(wall_follow_idx, "Wall Following");
+        } else if (msg.data == gap_follow_key_char)
+        {
+            toggle_mux(gap_follow_idx, "Gap Following");
         }
         // ***Add new else if statement here for new planning method***
         // if (msg.data == new_key_char) {
