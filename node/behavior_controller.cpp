@@ -124,6 +124,7 @@ public:
         // ***Add mux index for new planner here***
         // n.getParam("new_mux_idx", new_mux_idx);
         n.getParam("wall_follow_idx", wall_follow_idx);
+        n.getParam("gap_follow_idx", gap_follow_idx);
 
         // Get button indices
         n.getParam("joy_button_idx", joy_button_idx);
