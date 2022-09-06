@@ -139,7 +139,7 @@ public:
         std::string gap_follow_topic;
         n.getParam("gap_follow_topic", gap_follow_topic);
         n.getParam("gap_follow_idx", gap_follow_mux_idx);
-        add_channel(wall_follow_topic, drive_topic, wall_follow_mux_idx);
+        add_channel(gap_follow_idx, drive_topic, gap_follow_mux_idx);
     }
 
     void add_channel(std::string channel_name, std::string drive_topic, int mux_idx_) {
